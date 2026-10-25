@@ -1,0 +1,355 @@
+---
+# ==============================================================================
+# Global Security & Resilience Services (GSRS)
+# Intelligence, Incident Response & Crisis Management Framework
+# Specification Version: 2.4.0
+# Schema: Enterprise Threat Intelligence & Incident Response Orchestration
+# ==============================================================================
+
+version: "2.4.0"
+organization: "Global Security & Resilience Services (GSRS)"
+system_id: "GSRS-INTEL-ORCHESTRATOR"
+environment: "production"
+
+# ------------------------------------------------------------------------------
+# 1. PRIORITY INTELLIGENCE REQUIREMENTS (PIRs)
+# ------------------------------------------------------------------------------
+priority_intelligence_requirements:
+  - id: "PIR-01"
+    name: "Physical Threats to Corporate Facilities & Campuses"
+    category: "physical_security"
+    priority: "P1"
+    description: "Imminent or planned hostile actions, armed intrusion, unauthorized access, protests with trespass intent, or sabotage targeting corporate buildings."
+    monitored_targets:
+      - "headquarters"
+      - "regional_campuses"
+      - "sales_offices"
+      - "rd_facilities"
+
+  - id: "PIR-02"
+    name: "Data Center & Critical Infrastructure Resilience"
+    category: "infrastructure"
+    priority: "P1"
+    description: "Physical and environmental disruptions impacting cloud compute infrastructure, subsea cables, fiber backbones, and power grid stability."
+    monitored_targets:
+      - "production_data_centers"
+      - "co_location_facilities"
+      - "fiber_landing_stations"
+      - "regional_substations"
+
+  - id: "PIR-03"
+    name: "Global Traveler Safety & Duty of Care"
+    category: "travel_security"
+    priority: "P1"
+    description: "Incidents impacting business travelers and expatriates, including transport crashes, airport shutdowns, civil unrest, or health emergencies."
+    monitored_targets:
+      - "active_travel_itineraries"
+      - "international_airports"
+      - "corporate_hotel_blocks"
+      - "executive_travel_routes"
+
+  - id: "PIR-04"
+    name: "Geopolitical Instability & Civil Unrest"
+    category: "geopolitical"
+    priority: "P2"
+    description: "Armed conflict, violent civil disorder, general strikes, sudden regulatory clampdowns, or diplomatic crises affecting operational continuity."
+    monitored_targets:
+      - "high_risk_sovereignties"
+      - "disputed_borders"
+      - "consular_zones"
+
+  - id: "PIR-05"
+    name: "Severe Weather & Environmental Disasters"
+    category: "environmental"
+    priority: "P2"
+    description: "Seismic events (M6.0+), severe tropical storms, major wildfires, or flood surges threatening personnel or asset integrity within proximity buffers."
+    monitored_targets:
+      - "global_footprint_buffer_50km"
+
+# ------------------------------------------------------------------------------
+# 2. OPEN SOURCE INTELLIGENCE (OSINT) COLLECTION INGESTION
+# ------------------------------------------------------------------------------
+osint_collection:
+  feed_providers:
+    - name: "Geospatial & Seismic Feeds"
+      type: "api_webhook"
+      sources:
+        - "USGS_Earthquake_API"
+        - "GDACS_Disaster_Alerts"
+        - "NOAA_National_Hurricane_Center"
+        - "NASA_FIRMS_Fire_Data"
+      polling_interval_seconds: 60
+
+    - name: "Flight & Maritime Telemetry"
+      type: "streaming_feed"
+      sources:
+        - "ADSB_Exchange_API"
+        - "FlightRadar24_Enterprise"
+        - "MarineTraffic_Port_Status"
+      polling_interval_seconds: 120
+
+    - name: "Public Safety & Emergency Dispatch"
+      type: "audio_transcription_stream"
+      sources:
+        - "Broadcastify_Emergency_Feeds"
+        - "Regional_Civil_Protection_Feeds"
+      polling_interval_seconds: 30
+
+    - name: "Social & Digital Media Harvesters"
+      type: "social_osint_aggregator"
+      channels:
+        - "microblogging_networks"
+        - "public_messaging_channels"
+        - "local_citizen_news_portals"
+      polling_interval_seconds: 45
+
+  geofence_configurations:
+    campus_default_radius_km: 15.0
+    datacenter_default_radius_km: 25.0
+    traveler_dynamic_radius_km: 10.0
+    major_metropolitan_hub_radius_km: 50.0
+
+  privacy_and_compliance:
+    mode: "passive_monitoring_strict"
+    pii_redaction_enabled: true
+    managed_attribution_proxy: true
+    retention_days_raw_data: 30
+    retention_days_actionable_intel: 365
+
+# ------------------------------------------------------------------------------
+# 3. EVALUATION ENGINE (ADMIRALTY CODE & ESTIMATIVE LIKELIHOOD)
+# ------------------------------------------------------------------------------
+evaluation_engine:
+  source_reliability:
+    A:
+      label: "Completely Reliable"
+      weight: 1.0
+      description: "Official government sensor, accredited corporate partner, authenticated emergency feed."
+    B:
+      label: "Usually Reliable"
+      weight: 0.8
+      description: "Established international news agency, credentialed security reporter, validated local partner."
+    C:
+      label: "Fairly Reliable"
+      weight: 0.6
+      description: "Local witness with established online presence, municipal transit notice."
+    D:
+      label: "Not Usually Reliable"
+      weight: 0.4
+      description: "Unverified single-source social media handle."
+    E:
+      label: "Unreliable"
+      weight: 0.1
+      description: "Suspected bot network, known misinformation outlet."
+    F:
+      label: "Cannot Be Judged"
+      weight: 0.3
+      description: "New, untracked, or anonymous source."
+
+  information_credibility:
+    1:
+      label: "Confirmed"
+      weight: 1.0
+      description: "Independently verified by physical sensors or on-the-ground corporate security."
+    2:
+      label: "Probably True"
+      weight: 0.8
+      description: "Logical, consistent with known situation, corroborated by at least two independent feeds."
+    3:
+      label: "Possibly True"
+      weight: 0.5
+      description: "Plausible, but lacking independent multi-source verification."
+    4:
+      label: "Doubtful"
+      weight: 0.2
+      description: "Inconsistent with prevailing facts, improbable scenario."
+    5:
+      label: "Improbable"
+      weight: 0.05
+      description: "Directly refuted by reliable on-site ground truth."
+    6:
+      label: "Cannot Be Judged"
+      weight: 0.25
+      description: "Inadequate context to confirm or dispute."
+
+  likelihood_probability_thresholds:
+    almost_certain:
+      range: [0.90, 1.00]
+      adjective: "Almost Certain"
+    likely:
+      range: [0.60, 0.89]
+      adjective: "Likely"
+    even_chance:
+      range: [0.40, 0.59]
+      adjective: "Even Chance"
+    unlikely:
+      range: [0.10, 0.39]
+      adjective: "Unlikely"
+    remote:
+      range: [0.00, 0.09]
+      adjective: "Remote"
+
+  impact_severity_weights:
+    life_safety_threat: 100
+    critical_facility_closure: 80
+    data_center_outage_risk: 75
+    traveler_stranding_in_danger_zone: 60
+    reputational_crisis: 40
+    minor_transit_delay: 10
+
+# ------------------------------------------------------------------------------
+# 4. ESCALATION TIERS & AUTOMATED ROUTING
+# ------------------------------------------------------------------------------
+escalation_matrix:
+  tiers:
+    - level: 4
+      name: "CRITICAL_CRISIS"
+      description: "Direct, imminent threat to life safety, critical data center continuity, or active executive distress."
+      sla_minutes: 15
+      automated_actions:
+        - "initiate_p1_incident_bridge"
+        - "trigger_emns_mass_notification"
+        - "lock_corporate_travel_approvals_for_destination"
+        - "alert_executive_leadership_sms_and_voice"
+      distribution_list:
+        - "gsrs_vp@google.com"
+        - "head_of_global_security@google.com"
+        - "gsoc_shift_commanders@google.com"
+        - "enterprise_crisis_team_leads@google.com"
+        - "global_travel_risk_leads@google.com"
+
+    - level: 3
+      name: "HEIGHTENED_ALERT"
+      description: "Severe threat within facility buffer (e.g. violent unrest <2km, hurricane approaching within 24h, airspace closure)."
+      sla_minutes: 30
+      automated_actions:
+        - "deploy_geofenced_traveler_checkin"
+        - "notify_regional_security_director"
+        - "dispatch_tactical_gsoc_monitoring_desk"
+      distribution_list:
+        - "regional_security_directors@google.com"
+        - "gsoc_watch_standers@google.com"
+        - "facility_operations_leads@google.com"
+        - "global_travel_risk_desk@google.com"
+
+    - level: 2
+      name: "ELEVATED_MONITORING"
+      description: "Developing regional situation, upcoming strikes, non-violent demonstrations near campus, or adverse weather watch."
+      sla_minutes: 120
+      automated_actions:
+        - "create_jira_incident_ticket"
+        - "append_to_daily_threat_brief"
+        - "send_pre_travel_advisory_to_manifest"
+      distribution_list:
+        - "gsoc_operators@google.com"
+        - "local_campus_security_managers@google.com"
+        - "hr_people_ops_partners@google.com"
+
+    - level: 1
+      name: "INFORMATIONAL_ROUTINE"
+      description: "General situational awareness with no immediate operational impact."
+      sla_minutes: 720 # 12 hours / Shift handover
+      automated_actions:
+        - "log_to_intelligence_database"
+        - "include_in_weekly_trend_analysis"
+      distribution_list:
+        - "security_intel_archive@google.com"
+
+# ------------------------------------------------------------------------------
+# 5. DOMAIN-SPECIFIC OPERATIONAL PLAYBOOKS
+# ------------------------------------------------------------------------------
+playbooks:
+  incident_response:
+    name: "GSOC Tactical Incident Support Playbook"
+    trigger_criteria: "Facility alarm, physical protest at gate, or active local shooter/intruder within 5km."
+    workflow_steps:
+      - step: 1
+        action: "Confirm live OSINT feeds and municipal dispatch audio for target area."
+      - step: 2
+        action: "Establish GIS radius map displaying campus perimeter, access control points, and parking structures."
+      - step: 3
+        action: "Query physical access control system (PACS) for current on-site badge population count."
+      - step: 4
+        action: "Issue tactical security bulletin to local guard force with ingress/egress recommendations."
+      - step: 5
+        action: "Publish continuous 15-minute SITREPs (Situation Reports) to GSOC Bridge."
+
+  crisis_management:
+    name: "Enterprise Crisis Management & Business Continuity Playbook"
+    trigger_criteria: "Severity Level 3 or 4 event causing systemic business impact (e.g. data center down, coup, regional disaster)."
+    workflow_steps:
+      - step: 1
+        action: "Activate Incident Management Team (IMT) and Enterprise Crisis Team (ECT) virtual command room."
+      - step: 2
+        action: "Provide intelligence baseline brief: scope of disaster, critical utility outages, timeline projections."
+      - step: 3
+        action: "Coordinate with Supply Chain & Cloud Operations for alternate routing and workload failover."
+      - step: 4
+        action: "Establish media and public relations alignment with Corporate Communications to counter disinformation."
+      - step: 5
+        action: "Execute post-incident After-Action Review (AAR) within 72 hours of incident de-escalation."
+
+  global_travel_management:
+    name: "Duty of Care & Global Traveler Protection Playbook"
+    trigger_criteria: "Significant security incident, transport crash, or natural disaster in any country with active travelers."
+    workflow_steps:
+      - step: 1
+        action: "Poll corporate travel booking database (GDS/Concur/ISOS) for all personnel currently in-country."
+      - step: 2
+        action: "Generate Personnel at Risk (PAR) manifest: active travelers, expat families, and visiting executives."
+      - step: 3
+        action: "Deploy automated multi-channel accountability check-in (SMS/Email/In-App Push) with 'I am Safe' / 'I Need Assistance' response buttons."
+      - step: 4
+        action: "Establish direct contact with individuals marking 'I Need Assistance' or unresponsive after 3 attempts."
+      - step: 5
+        action: "Engage travel risk assistance provider (e.g. International SOS) for secure transport, lodging, or emergency aeromedical evacuation."
+
+# ------------------------------------------------------------------------------
+# 6. DISSEMINATION SCHEMAS & TEMPLATES
+# ------------------------------------------------------------------------------
+dissemination_products:
+  flash_alert_template:
+    header:
+      product: "GSRS INTELLIGENCE FLASH ALERT"
+      classification: "INTERNAL STRICT"
+    fields:
+      - "incident_id"
+      - "timestamp_utc"
+      - "threat_category"
+      - "admiralty_score"
+      - "executive_summary"
+      - "affected_google_assets"
+      - "traveler_headcount_in_impact_zone"
+      - "actions_taken"
+      - "recommended_actions"
+      - "next_scheduled_update"
+
+  daily_threat_brief_template:
+    header:
+      product: "GSRS DAILY GLOBAL SITUATIONAL AWARENESS BRIEF"
+      distribution: "GLOBAL_GSRS_ALL"
+    sections:
+      - "executive_dashboard_summary"
+      - "regional_security_highlights (Americas, EMEA, APAC)"
+      - "global_travel_risk_hotspots"
+      - "facility_health_and_weather_warnings"
+      - "calendar_of_high_risk_upcoming_events (Elections, Anniversaries, Protests)"
+
+# ------------------------------------------------------------------------------
+# 7. METRICS & CONTINUOUS IMPROVEMENT (SLAs & AUDIT)
+# ------------------------------------------------------------------------------
+metrics_and_auditing:
+  key_performance_indicators:
+    time_to_detect_seconds_max: 300
+    time_to_escalate_level4_minutes_max: 15
+    time_to_escalate_level3_minutes_max: 30
+    traveler_accountability_target_percent: 100
+    traveler_accountability_timeframe_hours: 2
+    actionable_intel_accuracy_threshold_percent: 90
+    false_positive_rate_maximum_percent: 5
+
+  continuous_refinement:
+    automated_post_incident_log: true
+    audit_frequency_days: 30
+    admiralty_code_recalibration_months: 6
+...
